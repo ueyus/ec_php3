@@ -1,6 +1,7 @@
 <?php
 
 require_once '../common/common.php';
+require_once '../class/Mise_db.php';
 
 try {
 	$member_email = $_POST['email'];
@@ -11,28 +12,23 @@ try {
 
 	$member_pass = md5($member_pass);
 
-	$db = connect_db();
-	$db->query('set names utf8');
+	$mise_db = new Mise_db();
 
-	$sql = 'select code, name from order_member where email = ? and password = ?';
-	$stmt = $db->prepare($sql);
-	$data = [$member_email, $member_pass];
-	$stmt->execute($data);
+	$rec = $mise_db->login_check($member_email, $member_pass);
 
-	$db = null;
-
-	$rec = $stmt->fetch(PDO::FETCH_ASSOC);
 	if ($rec == false) {
-		print 'メールアドレスかパスワードが間違っています';
-		print '<a href="member_login.html">戻る</a>';
+		'メールアドレスかパスワードが間違っています';
+		header('Location:mise_list.php?error=1');
 	} else {
-		var_dump("expression");
+		var_dump($rec);
 		session_start();
-		$_SESSION['member_login'] = 1;
-		$_SESSION['member_email'] = $member_email;
-		$_SESSION['member_name'] = $rec['name'];
-		$_SESSION['member_code'] = $rec['code'];
-		var_dump($_SESSION);
+		$tmp = [];
+		$tmp['member_login'] = 1;
+		$tmp['member_email'] = $member_email;
+		$tmp['member_name'] = $rec['name'];
+		$tmp['member_code'] = $rec['code'];
+		$_SESSION['member'] = $tmp;
+
 		header('Location:mise_list.php');
 	}
 } catch (Exception $e) {

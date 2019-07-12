@@ -76,10 +76,12 @@ create table order_product_tbl(
 	quantity int 
 );
 
+alter table order_product_tbl drop column price;
+
 #サンプルデータ
-insert into order_product_tbl(code_sale, code_product, price, quantity) values(1, 1, 1000, 2);
-insert into order_product_tbl(code_sale, code_product, price, quantity) values(1, 2, 10000, 2);
-insert into order_product_tbl(code_sale, code_product, price, quantity) values(2, 1, 500, 1);
+insert into order_product_tbl(code_sale, code_product, quantity) values(1, 1, 2);
+insert into order_product_tbl(code_sale, code_product, quantity) values(1, 2, 2);
+insert into order_product_tbl(code_sale, code_product, quantity) values(2, 1, 1);
 
 
 create table order_member(
@@ -93,5 +95,5 @@ create table order_member(
 	address varchar(50) not null,
 	tel varchar(13) not null,	
 	danjo int not null,
-	born int not null	
+	birth int not null	
 );

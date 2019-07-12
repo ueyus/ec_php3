@@ -8,12 +8,7 @@
 <head>
 	<meta charset="UTF-8">
 	<title>商品購入確認</title>
-	<link rel="stylesheet" href="../common/css/font-awesome/css/all.css"> 
-	<link rel="stylesheet" href="../css/normalize.css">
-	<link rel="stylesheet" href="../common/css/kaiin_header.css">
-	<link rel="stylesheet" href="../common/css/footer.css">
-	<link rel="stylesheet" href="../common/css/kaiin_navi.css">
-	<link rel="stylesheet" href="../common/css/kaiin_side.css">
+	<?php require_once('../common/html/mise_style.php'); ?>
 	<link rel="stylesheet" href="../css/pro_edit.css">
 </head>
 <body>
@@ -134,6 +129,7 @@
 					$inputs['email'] = $email;
 					$inputs['postal1'] = $postal1;
 					$inputs['postal2'] = $postal2;
+					$inputs['address'] = $address;
 					$inputs['tel'] = $tel;
 					$inputs['chumon'] = $chumon;
 					$inputs['password'] = $pass;

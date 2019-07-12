@@ -8,13 +8,7 @@
 <head>
 	<meta charset="UTF-8">
 	<title>購入手続き</title>
-	<link href="../common/css/font-awesome/css/all.css" rel="stylesheet"> 
-	<link rel="stylesheet" href="../css/normalize.css">
-	<link rel="stylesheet" href="../common/css/mise_header.css">
-	<link rel="stylesheet" href="../common/css/footer.css">
-	<link rel="stylesheet" href="../common/css/mise_navi.css">
-	<link rel="stylesheet" href="../common/css/mise_side.css">
-	<link rel="stylesheet" href="../common/css/mise_side_cate.css">
+	<?php require_once('../common/html/mise_style.php'); ?>
 	<link rel="stylesheet" href="../css/pro_disp.css">
 	<style>
 		.hidden-area {
@@ -47,6 +41,7 @@
 		require_once('../common/html/mise_header.php');
 		require_once('../common/html/mise_navi.php');
 		require_once('../common/common.php');
+		require_once('../class/Mise_db.php');
 	?>
 
 	<div class="main">
@@ -65,15 +60,11 @@
 					$is_login = isset($_SESSION['member_login']) && $_SESSION['member_login'] == 1;
 
 					if ($is_login) {
-						$db = connect_db();
-						$db->query('set names utf8');
 
-						$sql = 'select name, email, postal1, postal2, address, tel from order_tbl where code = ?';
-						$stmt = $db->prepare($sql);
-						$data = [$_SESSION['member_code']];
-						$stmt->execute($data);
+						$mise_db = new Mise_db();
+						// メンバー情報取得
+						$rec = $mise_db->get_order($_SESSION['member_code']);
 
-						$rec = $stmt->fetch(PDO::FETCH_ASSOC);	
 						$onamae = $rec['name'];
 						$email = $rec['email'];
 						$postal1 = $rec['postal1'];
@@ -81,11 +72,9 @@
 						$address = $rec['address'];
 						$tel = $rec['tel'];
 
-						$db = null;
-					}
-	
-						
-					
+						unset($rec);
+						unset($mise_db);
+					}				
 
 				?>
 				<table class="form-table">				

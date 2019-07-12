@@ -1,27 +1,21 @@
 <?php
 	session_start();
 	session_regenerate_id(true);
-
+/*
 	// Csrf対策
-	/*
 	if ($_POST['csrf_token'] != $_SESSION['csrf_token']) {
 		print '不正な操作が行われました。';
 		exit();
 	}
-	*/
 	unset($_SESSION['csrf_token']);
+*/
 ?>
 <!DOCTYPE html>
 <html lang="ja">
 <head>
 	<meta charset="UTF-8">
 	<title>商品購入完了</title>
-	<link href="../common/css/font-awesome/css/all.css" rel="stylesheet"> 
-	<link rel="stylesheet" href="../css/normalize.css">
-	<link rel="stylesheet" href="../common/css/mise_header.css">
-	<link rel="stylesheet" href="../common/css/footer.css">
-	<link rel="stylesheet" href="../common/css/mise_navi.css">
-	<link rel="stylesheet" href="../common/css/mise_side.css">
+	<?php require_once('../common/html/mise_style.php'); ?>
 	<link rel="stylesheet" href="../css/pro_disp.css">
 </head>
 <body>
@@ -43,7 +37,6 @@
 					$is_login = isset($_SESSION['member_login']) && $_SESSION['member_login'] == 1;
 					
 					$mise_db = new Mise_db();
-					$sql;
 
 					if ($is_login) {
 						$member_info = $mise_db->get_order($_SESSION['member_code']);
@@ -81,92 +74,75 @@
 					$honbun .= "-------------\n";
 
 					$cart = $_SESSION['cart'];
-					$count = $_SESSION['count'];
-					$max = count($cart);
-
-					for ($i = 0; $i < $max; $i++) {
-						$sql = 'select name, price from mst_product where code=?';
-						$stmt = $dbh->prepare($sql);
-						$data[0] = $cart[$i];
-						$stmt->execute($data);
-
-						$rec = $stmt->fetch(PDO::FETCH_ASSOC);
+					
+					foreach ($cart as $code => $cnt) {
+						$rec = $mise_db->get_shohin($code);
 
 						$name = $rec['name'];
 						$price = $rec['price'];
-						$kakaku[] = $price;
-						$suryo = $count[$i];
-						$shokei = $price * $suryo;
+						$shokei = $price * $cnt;
 
 						$honbun .= $name . '';
 						$honbun .= $price . '円　x';
-						$honbun .= $suryo . '個　=';
+						$honbun .= $cnt . '個　=';
 						$honbun .= $shokei . "円\n";
 					}
 
-					$sql = 'lock tables order_tbl, order_product_tbl write';
-					$stmt = $dbh->prepare($sql);
-					$stmt->execute();
-
-					$last_member = 0;
+					// トランザクション開始
+					$mise_db->beginTransaction();
+					// 排他制御のため、テーブルロック
 					if (!$is_login && $chumon == 'chumontouroku') {
-						
-						$sql = 'insert into order_member(password, name, email, postal1, postal2, address, tel, danjo, born) values(?,?,?,?,?,?,?,?,?)';
-						$stmt = $dbh->prepare($sql);
-						$data = [];
-						$data[] = md5($pass);
-						$data[] = $onamae;
-						$data[] = $email;
-						$data[] = $postal1;
-						$data[] = $postal2;
-						$data[] = $address;
-						$data[] = $tel;
-						$data[] = $danjo == 'man' ? 1 : 2;
-						$data[] = $birth;			
-						$stmt->execute($data);
+						$mise_db->lock_tables([Mise_db::MEM_TABLE, Mise_db::ORDER_TABLE, Mise_db::ORDER_PRODUCT_TABLE], 'write');
+					} else {
+						$mise_db->lock_tables([Mise_db::ORDER_TABLE, Mise_db::ORDER_PRODUCT_TABLE], 'write');
+					}
+					
+					$last_member = 0;
 
-						$sql = 'select last_insert_id()';
-						$stmt = $dbh->prepare($sql);
-						$stmt->execute();
-						$rec = $stmt->fetch(PDO::FETCH_ASSOC);
-						$last_member = $rec['LAST_INSERT_ID()'];
+					if (!$is_login && $chumon == 'chumontouroku') {
+						// メンバー情報登録
+						$mise_db->insert_table(Mise_db::MEM_TABLE, [
+							'password' => $pass,
+							'name' => $onamae,
+							'email' => $email,
+							'postal1' => $postal1,
+							'postal2' => $postal2,
+							'tel' => $tel,
+							'address' => $address,
+							'birth' => $birth,
+							'danjo' => $danjo == 'man' ? 1 : 2,
+						]);
+						$last_member = $mise_db->get_last_ins_id();
+
+					} else if ($is_login) {
+						$last_member = $_SESSION['member_code'];
 					}
 
-					$sql = 'insert into order_tbl(code_member, name, email, postal1, postal2, address, tel) values(?,?,?,?,?,?,?)';
-					$stmt = $dbh->prepare($sql);
-					$data = [];
-					$data[] = $last_member;
-					$data[] = $onamae;
-					$data[] = $email;
-					$data[] = $postal1;
-					$data[] = $postal2;
-					$data[] = $address;
-					$data[] = $tel;
-					$stmt->execute($data);
+					// 注文情報登録
+					$mise_db->insert_table(Mise_db::ORDER_TABLE, [
+						'password' => $last_member,
+						'name' => $onamae,
+						'email' => $email,
+						'postal1' => $postal1,
+						'postal2' => $postal2,
+						'tel' => $tel,
+						'address' => $address,
+					]);
 
-					$sql = 'select last_insert_id()';
-					$stmt = $dbh->prepare($sql);
-					$stmt->execute();
-					$rec = $stmt->fetch(PDO::FETCH_ASSOC);
-					$lastcode = $rec['LAST_INSERT_ID()'];
+					$last_code = $mise_db->get_last_ins_id();
 
-					for ($i = 0; $i < $max; $i++) {
-						$sql = 'insert into order_product_tbl(code_sale, code_product, price, quantity) values(?,?,?,?)';
-						$stmt = $dbh->prepare($sql);
-						$data = [];
-						$data[] = $lastcode;
-						$data[] = $cart[$i];
-						$data[] = $kakaku[$i];
-						$data[] = $count[$i];
-						$stmt->execute($data);
+					foreach ($cart as $code => $cnt) {
+						// 注文情報登録
+						$mise_db->insert_table(Mise_db::ORDER_PRODUCT_TABLE, [
+							'code_sale' => $last_code,
+							'code_product' => $code,
+							'quantity' => $cnt,
+						]);
 					}
 
-					$sql = 'unlock tables';
-					$stmt = $dbh->prepare($sql);
-					$stmt->execute();
+					$mise_db->unlock_tables();
+					unset($mise_db);
 
-					$dbh = null;
-					$chumontoroku = '';
 
 					if (!$is_login && $chumon == 'chumontouroku') {
 						print '会員登録が完了しました。<br>';
@@ -182,8 +158,8 @@
 					$honbun .= "テスト銀行　テスト支店　口座1111111111\n";
 					$honbun .= "入金確認が取れ次第、梱包、発送させていただきます。\n";
 					$honbun .= "\n";
-					$honbun .= "◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇\n";
-					$honbun .= "　～安心野菜の〇〇農園～　\n";
+					$honbun .= "------------------◇\n";
+					$honbun .= "　～〇〇農園～　\n";
 					$honbun .= "\n";
 					$honbun .= "〇〇県〇市\n";
 					$honbun .= "電話：　22222222\n";
@@ -197,7 +173,7 @@
 						$honbun .= "\n";
 					}
 
-					$honbun .= "◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇◇\n";
+					$honbun .= "------------------◇\n";
 
 
 					$title = 'ご注文ありがとうございます。';
@@ -216,6 +192,9 @@
 					// miseあてemail
 					mb_send_mail('test@email.cocooom.jpp', $title, $mise_honbun, $header);
 
+					// カートを削除
+					clearCart();
+
 
 				} catch (Exception $e) {
 					print $e;
@@ -224,7 +203,7 @@
 				}
 
 			?>
-			<a href="mise_list.php">商品画面へ</a>
+			<br><a href="mise_list.php" class="btn">商品画面へ</a>
 			</div>
 		<?php require_once('../common/html/mise_side.php'); ?>
 	</div>

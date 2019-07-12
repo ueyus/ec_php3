@@ -17,7 +17,7 @@
 	</div>
 	<div class="logout">
 		<?php
-			if ($_SESSION['member_login']) {
+			if (isset($_SESSION['member_login'])) {
 				print '<a href="' . getDomainName() . '/ec_php/mise/member_logout.php' . '">';
 		 		print '<i class="fas fa-sign-out-alt fa-2x awe-grey"></i>';
 			} else {

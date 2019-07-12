@@ -7,51 +7,60 @@
 <html lang="ja">
 <head>
 	<meta charset="UTF-8">
-	<title>	</title>
+	<title>cart in error!!!</title>
+	<?php require_once('../common/html/mise_style.php'); ?>
 </head>
-<body>
+<body>	
 <?php
-		try {
 
-			$pro_code = $_GET['pro_code'];
-			//　ここでサニタイジング
-			// $pro_code = htmlspecialchars($pro_code);
-			if (isset($_SESSION['cart']) == true) {
-				$cart = $_SESSION['cart'];
-				$count = $_SESSION['count'];
-			}
+	require_once('../common/html/mise_header.php');
+	require_once('../common/html/mise_navi.php');
+	
+	try {
 
-			if (isset($cart[$pro_code])) {
-				var_dump("expression");
-				/*
-				print 'その商品はすでにカートに入っています。';
-				print '<a href="mise_list.php">商品一覧に戻る</a>';
-				exit();
-				*/
-				$cart[$pro_code] = $cart[$pro_code]+1;
-			} else {
-				$cart[$pro_code] = 1;
-			}
+		$pro_code = $_GET['pro_code'];
+		//　ここでサニタイジング
+		// $pro_code = htmlspecialchars($pro_code);
+		if (isset($_SESSION['cart']) == true) {
+			$cart = $_SESSION['cart'];
+			// $count = $_SESSION['count'];
+		}
 
+		if (isset($cart[$pro_code])) {
 			/*
-			$cart[] = $pro_code;
-			$count[] = 1;
+			print 'その商品はすでにカートに入っています。';
+			print '<a href="mise_list.php">商品一覧に戻る</a>';
+			exit();
 			*/
-			$_SESSION['cart'] = $cart;
-			// $_SESSION['count'] = $count;
-			foreach ($cart as $key => $value) {
-				print $value;
-				print '<br>';
-			}
-		} catch (Exception $e) {
-				print 'system error !!!';
-				print $e;
-				exit();
-		} 
+			$cart[$pro_code] = $cart[$pro_code]+1;
+		} else {
+			$cart[$pro_code] = 1;
+		}
+
+		/*
+		$cart[] = $pro_code;
+		$count[] = 1;
+		*/
+		$_SESSION['cart'] = $cart;
+		// $_SESSION['count'] = $count;
+		/*
+		foreach ($cart as $key => $value) {
+			print $value;
+			print '<br>';
+		}
+		*/
+		header('Location:mise_cartlook.php');
+	} catch (Exception $e) {
+			print 'system error !!!';
+			print $e;
+			print '<a href="mise_list.php" class="btn">商品一覧に戻る</a>';
+			exit();
+	} 
 ?>
-		カートに追加しました。<br>
-		<br>
-		<a href="mise_list.php">商品一覧に戻る</a>
-		
+	<!--
+	カートに追加しました。<br>
+	<br>
+	-->
+	
 </body>
 </html>

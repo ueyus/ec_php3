@@ -10,12 +10,7 @@
 <head>
 	<meta charset="UTF-8">
 	<title>ショップ</title>
-	<link href="../common/css/font-awesome/css/all.css" rel="stylesheet"> 
-	<link rel="stylesheet" href="../common/css/common.css">
-	<link rel="stylesheet" href="../common/css/mise_header.css">
-	<link rel="stylesheet" href="../common/css/footer.css">
-	<link rel="stylesheet" href="../common/css/mise_navi.css">
-	<link rel="stylesheet" href="../common/css/mise_side.css">
+	<?php require_once('../common/html/mise_style.php'); ?>
 	<link rel="stylesheet" href="../common/css/mise_side_cate.css">
 	<style>
 		.product {

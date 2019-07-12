@@ -8,13 +8,7 @@
 <head>
 	<meta charset="UTF-8">
 	<title>カート</title>
-	<link href="../common/css/font-awesome/css/all.css" rel="stylesheet"> 
-	<link rel="stylesheet" href="../css/normalize.css">
-	<link rel="stylesheet" href="../common/css/mise_header.css">
-	<link rel="stylesheet" href="../common/css/footer.css">
-	<link rel="stylesheet" href="../common/css/mise_navi.css">
-	<link rel="stylesheet" href="../common/css/mise_side.css">
-	<link rel="stylesheet" href="../common/css/mise_side_cate.css">
+	<?php require_once('../common/html/mise_style.php'); ?>
 	<link rel="stylesheet" href="../css/pro_disp.css">
 	<style>
 		.form-table {
@@ -35,6 +29,13 @@
 			width: 50px;
 			height: 50px;
 		}
+
+		.form-table .noshohin-msg {
+			font-size: 18px;
+			margin-top: 5px;
+			margin-bottom: 10px;
+			background-color: yellow;
+		}
 	</style>
 </head>
 <body>
@@ -51,19 +52,11 @@
 
 	if (isset($_SESSION['cart']) == true) {
 		$cart = $_SESSION['cart'];
-		// $count = $_SESSION['count'];
 		$max = count($cart);	
 	} else {
 		$max = 0;
 	}
 	
-
-	if ($max == 0) {
-		print '商品が入っていません。';
-		print '<br>';
-		print '<a href="mise_list.php">商品一覧へ戻る</a>';
-		exit();
-	}
 
 	foreach ($cart as $code => $cnt) {
 		$rec = $mise_db->get_shohin($code);
@@ -80,7 +73,7 @@
 	<div class="main">
 		<div class="main-container">
 			<h3 class="main-title">カートの中身</h3>
-
+			
 			<form action="count_change.php" method="post">
 				<table class="form-table">
 					<tr>
@@ -91,6 +84,13 @@
 						<td>小計</td>
 						<td>削除</td>
 					</tr>
+
+					<?php if ($max === 0) { ?>
+					<tr>
+						<td colspan="6" class="noshohin-msg">商品が入っていません。</td>
+					</tr>
+					<?php } ?>
+
 					<?php for ($i = 0; $i < $max; $i++) { ?>	
 						<tr>
 							<td><?php print $pro_name[$i] ?></td>
@@ -106,6 +106,7 @@
 				</table>
 				<input type="hidden" name="max" value="<?php print $max; ?>">
 				<input type="submit" value="数量変更" class="btn">
+				<input type="button" onclick="location.href='mise_list.php'" value="商品一覧へ戻る" class="btn">
 			<!--
 				<input type="button" onclick="location.href='./clear_cart.php'" value="カートを空にする" class="btn">
 				<input type="button" onclick="location.href='./mise_form.html'" value="ご購入手続きへ進む" class="btn">

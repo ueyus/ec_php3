@@ -2,9 +2,9 @@
 
 trait ProductTrait {
 
-	public function get_shohin($code) {
+	public function get_shohin($db, $code) {
 		$sql = 'select code, name, price, file_name, file_path from mst_product where code = ?';
-		$stmt = $this->db->prepare($sql);
+		$stmt = $db->prepare($sql);
 		$data = [$code];
 		$stmt->execute($data);
 
